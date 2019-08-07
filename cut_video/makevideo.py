@@ -1,0 +1,43 @@
+from moviepy.editor import *
+import numpy as np
+import cv2
+# for windows, mac users
+# from PIL import ImageGrab
+# for linux users
+import pyscreenshot as ImageGrab
+
+# clip = VideoFileClip("videoplayback.mp4").subclip(50,60)
+# clip.write_videofile("myHolidays_edited1.mp4")
+
+# four character code object for video writer
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+# video writer object
+out = cv2.VideoWriter('output.avi',fourcc, 20.0, (640,480))
+
+while True:
+    # capture computer screen
+    # ret, frame=cap.read()
+
+    img = ImageGrab.grab()
+    # convert image to numpy array
+    img_np = np.array(img)
+    # gray=cv2.cvtColor(img_np, cv2.COLOR_BGR2GRAY)
+    out.write(img_np)
+    cv2.imshow('frame',img_np)
+
+
+    # img = ImageGrab.grab()
+    # # convert image to numpy array
+    # img_np = np.array(img)
+    # # convert color space from BGR to RGB
+    # frame = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
+    # # show image on OpenCV frame
+    # cv2.imshow("Screen", frame)
+    # # write frame to video writer
+    # out.write(frame)
+
+    if cv2.waitKey(1) == 27:
+        break
+# cap.release()
+out.release()
+cv2.destroyAllWindows()
