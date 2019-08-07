@@ -1,43 +1,65 @@
-from moviepy.editor import *
-import numpy as np
+import time
 import cv2
-# for windows, mac users
-# from PIL import ImageGrab
-# for linux users
-import pyscreenshot as ImageGrab
-
-# clip = VideoFileClip("videoplayback.mp4").subclip(50,60)
-# clip.write_videofile("myHolidays_edited1.mp4")
-
-# four character code object for video writer
-fourcc = cv2.VideoWriter_fourcc(*'XVID')
-# video writer object
-out = cv2.VideoWriter('output.avi',fourcc, 20.0, (640,480))
-
-while True:
-    # capture computer screen
-    # ret, frame=cap.read()
-
-    img = ImageGrab.grab()
-    # convert image to numpy array
-    img_np = np.array(img)
-    # gray=cv2.cvtColor(img_np, cv2.COLOR_BGR2GRAY)
-    out.write(img_np)
-    cv2.imshow('frame',img_np)
+import mss
+import numpy
+import os
 
 
-    # img = ImageGrab.grab()
-    # # convert image to numpy array
-    # img_np = np.array(img)
-    # # convert color space from BGR to RGB
-    # frame = cv2.cvtColor(img_np, cv2.COLOR_BGR2RGB)
-    # # show image on OpenCV frame
-    # cv2.imshow("Screen", frame)
-    # # write frame to video writer
-    # out.write(frame)
 
-    if cv2.waitKey(1) == 27:
-        break
-# cap.release()
-out.release()
-cv2.destroyAllWindows()
+def save_images(*args, **kwargs):
+    with mss.mss() as sct:
+        # Part of the screen to capture
+        sct.compression_level = 9
+        monitor = {"top": 0, "left": 0, "width": 720, "height": 480}
+
+        x = 0
+        last_time = time.time()
+        while x<500:
+            # last_time = time.time()
+            if (1 / (time.time() - last_time)) <= 30:
+                last_time = time.time()
+                # Grab the data
+                sct_img = sct.grab(monitor)
+
+                x = x + 1
+                output = "images/image" + str(x) + ".png".format(**monitor)
+                mss.tools.to_png(sct_img.rgb, sct_img.size, output=output)
+
+                # Get raw pixels from the screen, save it to a Numpy array
+                img = numpy.array(sct_img)
+
+                # Display the picture
+                cv2.imshow("OpenCV/Numpy normal", img)
+
+                # Display the picture in grayscale
+                # cv2.imshow('OpenCV/Numpy grayscale',
+                #            cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY))
+
+                # print("fps: {}".format(1 / (time.time() - last_time)))
+
+                # Press "q" to quit
+                if cv2.waitKey(25) & 0xFF == ord("q"):
+                    cv2.destroyAllWindows()
+                    break
+            print("fps: {}".format(1 / (time.time() - last_time)))
+        make_video()
+
+
+def make_video(*args, **kwargs):
+    image_folder = 'images'
+    video_name = 'video.avi'
+
+    images = [img for img in os.listdir(image_folder) if img.endswith(".png")]
+    frame = cv2.imread(os.path.join(image_folder, images[0]))
+    height, width, layers = frame.shape
+
+    video = cv2.VideoWriter(video_name, 0, 1, (width, height))
+
+    for image in images:
+        video.write(cv2.imread(os.path.join(image_folder, image)))
+
+    cv2.destroyAllWindows()
+    video.release()
+
+print("working")
+save_images()
