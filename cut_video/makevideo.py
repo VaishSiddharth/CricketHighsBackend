@@ -6,6 +6,25 @@ import os
 
 from os.path import isfile, join
 
+import sounddevice as sd
+from scipy.io.wavfile import write
+import moviepy.editor as mpe
+
+def combine_audio_video():
+    my_clip = mpe.VideoFileClip('video.avi')
+    audio_background = mpe.AudioFileClip('output.wav')
+    final_clip = my_clip.set_audio(audio_background)
+    final_clip.write_videofile("movie.mp4", fps=20)
+
+def record_audio():
+    fs = 44100  # Sample rate
+    seconds = 21  # Duration of recording
+    sd.default.device = 8
+
+    myrecording = sd.rec(int(seconds * fs), samplerate=fs, channels=2)
+    sd.wait()  # Wait until recording is finished
+    write('output.wav', fs, myrecording)  # Save as WAV file
+
 
 def convert_frames_to_video(pathIn, pathOut, fps):
     frame_array = []
@@ -30,12 +49,13 @@ def convert_frames_to_video(pathIn, pathOut, fps):
         # writing to a image array
         out.write(frame_array[i])
     out.release()
+    combine_audio_video()
 
 
-def mainvideos():
+def make_video():
     pathIn = 'images/'
     pathOut = 'video.avi'
-    fps = 25.0
+    fps = 20.0
     convert_frames_to_video(pathIn, pathOut, fps)
 
 
@@ -47,10 +67,15 @@ def save_images(*args, **kwargs):
         monitor = {"top": 0, "left": 0, "width": 720, "height": 480}
 
         x = 0
+        fs = 44100  # Sample rate
+        seconds = 25  # Duration of recording
+        sd.default.device = 8
+
+        myrecording = sd.rec(int(seconds * fs), samplerate=fs, channels=2)
         last_time = time.time()
         while x<500:
             # last_time = time.time()
-            if (1 / (time.time() - last_time)) <= 30:
+            if (1 / (time.time() - last_time)) <= 20:
                 last_time = time.time()
                 # Grab the data
                 sct_img = sct.grab(monitor)
@@ -76,24 +101,8 @@ def save_images(*args, **kwargs):
                     cv2.destroyAllWindows()
                     break
             print("fps: {}".format(1 / (time.time() - last_time)))
-        mainvideos()
-
-
-def make_video(*args, **kwargs):
-    image_folder = 'images'
-    video_name = 'video.avi'
-
-    images = [img for img in os.listdir(image_folder) if img.endswith(".png")]
-    frame = cv2.imread(os.path.join(image_folder, images[0]))
-    height, width, layers = frame.shape
-
-    video = cv2.VideoWriter(video_name, 0, 1, (width, height))
-
-    for image in images:
-        video.write(cv2.imread(os.path.join(image_folder, image)))
-
-    cv2.destroyAllWindows()
-    video.release()
+        write('output.wav', fs, myrecording)  # Save as WAV file
+        make_video()
 
 print("working")
 save_images()
