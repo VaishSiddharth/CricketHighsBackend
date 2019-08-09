@@ -3,6 +3,10 @@ import cv2
 import mss
 import numpy
 import os
+from multiprocessing import Process, Queue
+
+import mss
+import mss.tools
 
 from os.path import isfile, join
 
@@ -55,7 +59,7 @@ def save_images(*args, **kwargs):
 def make_video():
     pathIn = 'images/'
     pathOut = 'video.avi'
-    fps = 20.0
+    fps = 30.0
     convert_frames_to_video(pathIn, pathOut, fps)
 
 def convert_frames_to_video(pathIn, pathOut, fps):
@@ -88,13 +92,14 @@ def combine_audio_video():
     my_clip = mpe.VideoFileClip('video.avi')
     audio_background = mpe.AudioFileClip('output.wav')
     final_clip = my_clip.set_audio(audio_background)
-    final_clip.write_videofile("movie.mp4", fps=20)
+    final_clip.write_videofile("movie.mp4", fps=30)
 
 
-def record_audio():# not using
+def record_audio():
+    import sounddevice as sd
     fs = 44100  # Sample rate
-    seconds = 21  # Duration of recording
-    sd.default.device = 8
+    seconds = 16  # Duration of recording
+    # sd.default.device = 9
 
     myrecording = sd.rec(int(seconds * fs), samplerate=fs, channels=2)
     sd.wait()  # Wait until recording is finished
@@ -102,4 +107,50 @@ def record_audio():# not using
 
 
 print("working")
-save_images()
+# save_images()
+
+def grab(queue):
+    # type: (Queue) -> None
+    rect = {"top": 0, "left": 0, "width": 1920, "height": 1080}
+
+    with mss.mss() as sct:
+        last_time = time.time()
+        x=0
+        while x<500:
+            if (1 / (time.time() - last_time)) <= 30:
+                x=x+1
+                last_time = time.time()
+                queue.put(sct.grab(rect))
+            print("fps: {}".format(1 / (time.time() - last_time)))
+
+    # Tell the other worker to stop
+    queue.put(None)
+
+
+def save(queue):
+    # type: (Queue) -> None
+
+    number = 0
+    output = "images/file_{}.png"
+    to_png = mss.tools.to_png
+
+    while "there are screenshots":
+        img = queue.get()
+        if img is None:
+            break
+
+        to_png(img.rgb, img.size, output=output.format(number))
+        number += 1
+
+
+    make_video()
+
+if __name__ == "__main__":
+    # The screenshots queue
+    queue = Queue()  # type: Queue
+
+    # 2 processes: one for grabing and one for saving PNG files
+    Process(target=grab, args=(queue,)).start()
+    Process(target=save, args=(queue,)).start()
+
+    Process(target=record_audio(),args=()).start()
