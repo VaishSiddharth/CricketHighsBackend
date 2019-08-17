@@ -143,14 +143,21 @@ def save(queue):
         number += 1
 
 
-    make_video()
 
 if __name__ == "__main__":
     # The screenshots queue
     queue = Queue()  # type: Queue
 
     # 2 processes: one for grabing and one for saving PNG files
-    Process(target=grab, args=(queue,)).start()
-    Process(target=save, args=(queue,)).start()
+    p1=Process(target=grab, args=(queue,))
+    p2=Process(target=save, args=(queue,))
+    p3 = Process(target=record_audio(), args=())
+    p1.start()
+    p3.start()
+    p2.start()
 
-    Process(target=record_audio(),args=()).start()
+    p1.join()
+    p2.join()
+    p3.join()
+
+    make_video()
