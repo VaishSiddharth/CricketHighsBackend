@@ -14,48 +14,6 @@ import sounddevice as sd
 from scipy.io.wavfile import write
 import moviepy.editor as mpe
 
-def save_images(*args, **kwargs):
-    with mss.mss() as sct:
-        # Part of the screen to capture
-        sct.compression_level = 9
-        monitor = {"top": 0, "left": 0, "width": 720, "height": 480}
-
-        x = 0
-        fs = 44100  # Sample rate
-        seconds = 25  # Duration of recording
-        # sd.default.device = 8 # change recording device
-
-        myrecording = sd.rec(int(seconds * fs), samplerate=fs, channels=2)
-        last_time = time.time()
-        while x < 500:
-            # last_time = time.time()
-            if (1 / (time.time() - last_time)) <= 20:
-                last_time = time.time()
-                # Grab the data
-                sct_img = sct.grab(monitor)
-
-                x = x + 1
-                output = "images/image" + str(x) + ".png".format(**monitor)
-
-                # store images in png format
-                mss.tools.to_png(sct_img.rgb, sct_img.size, output=output)
-
-                # Get raw pixels from the screen, save it to a Numpy array
-                img = numpy.array(sct_img)
-
-                # Display the picture
-                cv2.imshow("OpenCV/Numpy normal", img)
-
-                # print("fps: {}".format(1 / (time.time() - last_time)))
-
-                # Press "q" to quit
-                if cv2.waitKey(25) & 0xFF == ord("q"):
-                    cv2.destroyAllWindows()
-                    break
-            print("fps: {}".format(1 / (time.time() - last_time)))
-        write('output.wav', fs, myrecording)  # Save as WAV file
-        make_video()
-
 def make_video():
     pathIn = 'images/'
     pathOut = 'video.avi'
@@ -95,25 +53,30 @@ def combine_audio_video():
     final_clip.write_videofile("movie.mp4", fps=30)
 
 
-def record_audio():
-    import sounddevice as sd
+def record_audio(myrecording):
+    sd._terminate()
+    sd._initialize()
     fs = 44100  # Sample rate
     seconds = 16  # Duration of recording
     # sd.default.device = 9
+    print(type(myrecording))
+    myrec = sd.rec(int(seconds * fs), samplerate=fs, channels=2)
+    sd.wait()
+    myrecording.put(myrec)
 
-    myrecording = sd.rec(int(seconds * fs), samplerate=fs, channels=2)
-    sd.wait()  # Wait until recording is finished
-    write('output.wav', fs, myrecording)  # Save as WAV file
+    # print(type(myrecording))
+    # sd.wait()  # Wait until recording is finished
+    # print("raudio" + str(myrec))
+    # write('output.wav', fs, myrecording)  # Save as WAV file
 
 
-print("working")
-# save_images()
 
-def grab(queue):
-    # type: (Queue) -> None
+def grab(queue,myrecording):
+    # type: # (Queue) -> None
     rect = {"top": 0, "left": 0, "width": 1920, "height": 1080}
 
     with mss.mss() as sct:
+        sct.compression_level=9
         last_time = time.time()
         x=0
         while x<500:
@@ -123,12 +86,15 @@ def grab(queue):
                 queue.put(sct.grab(rect))
             print("fps: {}".format(1 / (time.time() - last_time)))
 
+    recording=myrecording.get()
+    print("grab"+str(recording))
+    write('output.wav', 44100, recording)
     # Tell the other worker to stop
     queue.put(None)
 
 
 def save(queue):
-    # type: (Queue) -> None
+    # type: # (Queue) -> None
 
     number = 0
     output = "images/file_{}.png"
@@ -139,6 +105,7 @@ def save(queue):
         if img is None:
             break
 
+        print("Saving")
         to_png(img.rgb, img.size, output=output.format(number))
         number += 1
 
@@ -146,12 +113,14 @@ def save(queue):
 
 if __name__ == "__main__":
     # The screenshots queue
-    queue = Queue()  # type: Queue
+    queue = Queue()
+    myrecording=Queue()
+    print(type(myrecording))
 
     # 2 processes: one for grabing and one for saving PNG files
-    p1=Process(target=grab, args=(queue,))
+    p1=Process(target=grab, args=(queue,myrecording))
     p2=Process(target=save, args=(queue,))
-    p3 = Process(target=record_audio(), args=())
+    p3 = Process(target=record_audio, args=(myrecording,))
     p1.start()
     p3.start()
     p2.start()

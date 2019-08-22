@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="90841592-a077-4dae-b0ab-f23555438cc8" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cut_video/makevideo.py" beforeDir="false" afterPath="$PROJECT_DIR$/cut_video/makevideo.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cut_video/makevideo.py" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -87,6 +86,13 @@
       <workItem from="1565026548296" duration="2184000" />
       <workItem from="1566050849625" duration="2145000" />
       <workItem from="1566060479381" duration="5217000" />
+      <workItem from="1566493964439" duration="3429000" />
+      <workItem from="1566497629855" duration="852000" />
+      <workItem from="1566498507204" duration="506000" />
+      <workItem from="1566499232252" duration="779000" />
+      <workItem from="1566501557118" duration="558000" />
+      <workItem from="1566508099995" duration="622000" />
+      <workItem from="1566508753683" duration="261000" />
     </task>
     <servers />
   </component>
@@ -108,6 +114,6 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/CricketHighsBackend$CricketHighsBackend.coverage" NAME="makevideo Coverage Results" MODIFIED="1565189066408" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/cut_video" />
-    <SUITE FILE_PATH="coverage/CricketHighsBackend$makevideo.coverage" NAME="makevideo Coverage Results" MODIFIED="1566072061152" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/cut_video" />
+    <SUITE FILE_PATH="coverage/CricketHighsBackend$makevideo.coverage" NAME="makevideo Coverage Results" MODIFIED="1566508864869" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/cut_video" />
   </component>
 </project>
