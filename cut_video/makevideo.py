@@ -3,6 +3,7 @@ import cv2
 import mss
 import numpy
 import os
+import shutil
 from multiprocessing import Process, Queue
 
 import mss
@@ -51,7 +52,14 @@ def combine_audio_video():
     audio_background = mpe.AudioFileClip('output.wav')
     final_clip = my_clip.set_audio(audio_background)
     final_clip.write_videofile("movie.mp4", fps=30)
+    cleanup()
 
+def cleanup():
+    if os.path.exists('movie.mp4'):
+        # str(os.getcwd()) + '/' +
+        shutil.rmtree('images')
+        os.remove('output.wav')
+        os.remove('video.avi')
 
 def record_audio(myrecording):
     sd._terminate()
@@ -113,9 +121,12 @@ def save(queue):
 
 if __name__ == "__main__":
     # The screenshots queue
+    # shutil.rmtree('images')
     queue = Queue()
     myrecording=Queue()
     print(type(myrecording))
+    if not os.path.exists('images'):
+        os.makedirs('images')
 
     # 2 processes: one for grabing and one for saving PNG files
     p1=Process(target=grab, args=(queue,myrecording))
