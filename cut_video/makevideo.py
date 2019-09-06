@@ -5,7 +5,7 @@ import numpy
 import os
 import shutil
 from multiprocessing import Process, Queue
-
+import pickle
 import mss
 import mss.tools
 
@@ -15,11 +15,13 @@ import sounddevice as sd
 from scipy.io.wavfile import write
 import moviepy.editor as mpe
 
+
 def make_video():
     pathIn = 'images/'
     pathOut = 'video.avi'
     fps = 30.0
     convert_frames_to_video(pathIn, pathOut, fps)
+
 
 def convert_frames_to_video(pathIn, pathOut, fps):
     frame_array = []
@@ -54,12 +56,14 @@ def combine_audio_video():
     final_clip.write_videofile("movie.mp4", fps=30)
     cleanup()
 
+
 def cleanup():
     if os.path.exists('movie.mp4'):
         # str(os.getcwd()) + '/' +
         shutil.rmtree('images')
         os.remove('output.wav')
         os.remove('video.avi')
+
 
 def record_audio(myrecording):
     sd._terminate()
@@ -78,24 +82,23 @@ def record_audio(myrecording):
     # write('output.wav', fs, myrecording)  # Save as WAV file
 
 
-
-def grab(queue,myrecording):
+def grab(queue, myrecording):
     # type: # (Queue) -> None
     rect = {"top": 0, "left": 0, "width": 1920, "height": 1080}
 
     with mss.mss() as sct:
-        sct.compression_level=9
+        sct.compression_level = 9
         last_time = time.time()
-        x=0
-        while x<500:
+        x = 0
+        while x < 500:
             if (1 / (time.time() - last_time)) <= 30:
-                x=x+1
+                x = x + 1
                 last_time = time.time()
                 queue.put(sct.grab(rect))
             print("fps: {}".format(1 / (time.time() - last_time)))
 
-    recording=myrecording.get()
-    print("grab"+str(recording))
+    recording = myrecording.get()
+    print("grab" + str(recording))
     write('output.wav', 44100, recording)
     # Tell the other worker to stop
     queue.put(None)
@@ -108,29 +111,44 @@ def save(queue):
     output = "images/file_{}.png"
     to_png = mss.tools.to_png
 
-    while "there are screenshots":
-        img = queue.get()
-        if img is None:
-            break
+    with open('image_data', 'ab') as img_data:
+        while True:
+            img = queue.get()
+            if img is None:
+                break
+            pickle.dump(img, img_data)
+            # to_png(img.rgb, img.size, output=output.format(number))
+            number += 1
 
-        print("Saving")
-        to_png(img.rgb, img.size, output=output.format(number))
-        number += 1
 
+def saveToPNG():
+    number = 0
+    output = "images/file_{}.png"
+    to_png = mss.tools.to_png
+    with open('image_data', 'rb') as img_data:
+        # img_queue = pickle.load(img_data)
+        while number < 500:
+            img_queue = pickle.load(img_data)
+            img = img_queue
+            if img is None:
+                break
+            print("Saving " + str(number))
+            to_png(img.rgb, img.size, output=output.format(number))
+            number += 1
+    make_video()
 
 
 if __name__ == "__main__":
     # The screenshots queue
     # shutil.rmtree('images')
     queue = Queue()
-    myrecording=Queue()
-    print(type(myrecording))
+    myrecording = Queue()
     if not os.path.exists('images'):
         os.makedirs('images')
 
     # 2 processes: one for grabing and one for saving PNG files
-    p1=Process(target=grab, args=(queue,myrecording))
-    p2=Process(target=save, args=(queue,))
+    p1 = Process(target=grab, args=(queue, myrecording))
+    p2 = Process(target=save, args=(queue,))
     p3 = Process(target=record_audio, args=(myrecording,))
     p1.start()
     p3.start()
@@ -140,4 +158,4 @@ if __name__ == "__main__":
     p2.join()
     p3.join()
 
-    make_video()
+    saveToPNG()
