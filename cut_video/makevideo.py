@@ -63,6 +63,7 @@ def cleanup():
         shutil.rmtree('images')
         os.remove('output.wav')
         os.remove('video.avi')
+        os.remove('image_data')
 
 
 def record_audio(myrecording):

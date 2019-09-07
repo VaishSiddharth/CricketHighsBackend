@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="90841592-a077-4dae-b0ab-f23555438cc8" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cut_video/makevideo.py" beforeDir="false" afterPath="$PROJECT_DIR$/cut_video/makevideo.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -94,6 +93,7 @@
       <workItem from="1566508099995" duration="622000" />
       <workItem from="1566508753683" duration="261000" />
       <workItem from="1566820587629" duration="1550000" />
+      <workItem from="1567854460049" duration="117000" />
     </task>
     <servers />
   </component>
