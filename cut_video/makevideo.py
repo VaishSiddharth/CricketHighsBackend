@@ -8,6 +8,7 @@ from multiprocessing import Process, Queue
 import pickle
 import mss
 import mss.tools
+from moviepy.editor import VideoFileClip, concatenate_videoclips
 
 from os.path import isfile, join
 
@@ -18,7 +19,7 @@ import moviepy.editor as mpe
 
 def make_video():
     pathIn = 'images/'
-    pathOut = 'video.avi'
+    pathOut = 'video.mp4'
     fps = 30.0
     convert_frames_to_video(pathIn, pathOut, fps)
 
@@ -29,24 +30,44 @@ def convert_frames_to_video(pathIn, pathOut, fps):
 
     # for sorting the file names properly
     files.sort(key=lambda x: int(x[5:-4]))
+    no_of_images = len(files)
+    j = 0
+    while j < (no_of_images):
+        k = j + 200
+        frame_array.clear()
+        pathOut = "video" + str(k) + ".mp4"
+        while k > j:
+            filename = pathIn + files[j]
+            # reading each files
+            img = cv2.imread(filename)
+            height, width, layers = img.shape
+            size = (width, height)
+            print(filename)
+            # inserting the frames into an image array
+            frame_array.append(img)
+            j = j + 1
 
-    for i in range(len(files)):
-        filename = pathIn + files[i]
-        # reading each files
-        img = cv2.imread(filename)
-        height, width, layers = img.shape
-        size = (width, height)
-        print(filename)
-        # inserting the frames into an image array
-        frame_array.append(img)
+        out = cv2.VideoWriter(pathOut, cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
 
-    out = cv2.VideoWriter(pathOut, cv2.VideoWriter_fourcc(*'DIVX'), fps, size)
+        for i in range(len(frame_array)):
+            # writing to a image array
+            out.write(frame_array[i])
+        out.release()
+        if (k != 200):
+            combine_videos(pathOut, k)
+        # combine_audio_video()
 
-    for i in range(len(frame_array)):
-        # writing to a image array
-        out.write(frame_array[i])
-    out.release()
-    combine_audio_video()
+
+def combine_videos(pathout, j):
+    clip1 = mpe.VideoFileClip(pathout)
+    if (j == 400):
+        out2 = "video" + str(j - 200) + ".mp4"
+    else:
+        out2 = "video" + str(j - 200) + "1" + ".mp4"
+    clip2 = mpe.VideoFileClip(out2)
+    final_clip = concatenate_videoclips([clip2, clip1])
+    out3 = "video" + str(j) + "1" + ".mp4"
+    final_clip.write_videofile(out3)
 
 
 def combine_audio_video():
@@ -70,7 +91,7 @@ def record_audio(myrecording):
     sd._terminate()
     sd._initialize()
     fs = 44100  # Sample rate
-    seconds = 16  # Duration of recording
+    seconds = 20  # Duration of recording
     # sd.default.device = 9
     print(type(myrecording))
     myrec = sd.rec(int(seconds * fs), samplerate=fs, channels=2)
@@ -91,7 +112,7 @@ def grab(queue, myrecording):
         sct.compression_level = 9
         last_time = time.time()
         x = 0
-        while x < 500:
+        while x < 1500:
             if (1 / (time.time() - last_time)) <= 30:
                 x = x + 1
                 last_time = time.time()
@@ -111,12 +132,12 @@ def save(queue):
     number = 0
     output = "images/file_{}.png"
     to_png = mss.tools.to_png
-    file=0
-    while file<5:
-        file=file+1
-        number=0
-        with open('image_data'+str(file), 'ab') as img_data:
-            while number<100:
+    file = 0
+    while file < 15:
+        file = file + 1
+        number = 0
+        with open('image_data' + str(file), 'ab') as img_data:
+            while number < 100:
                 img = queue.get()
                 if img is None:
                     break
@@ -129,9 +150,9 @@ def saveToPNG():
     number = 0
     output = "images/file_{}.png"
     to_png = mss.tools.to_png
-    file=1
-    while file<5:
-        with open('image_data'+str(file), 'rb') as img_data:
+    file = 1
+    while file < 15:
+        with open('image_data' + str(file), 'rb') as img_data:
             # img_queue = pickle.load(img_data)
             while True:
                 try:
@@ -143,10 +164,10 @@ def saveToPNG():
                     to_png(img.rgb, img.size, output=output.format(number))
                     number += 1
                 except (EOFError):
-                    print("EOF"+str(file))
+                    print("EOF" + str(file))
                     break
             img_data.close()
-            file=file+1
+            file = file + 1
     make_video()
 
 
