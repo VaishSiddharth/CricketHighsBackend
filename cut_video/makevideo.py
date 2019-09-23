@@ -63,6 +63,7 @@ def cleanup():
         shutil.rmtree('images')
         os.remove('output.wav')
         os.remove('video.avi')
+        # os.remove('image_data')
 
 
 def record_audio(myrecording):
@@ -110,31 +111,42 @@ def save(queue):
     number = 0
     output = "images/file_{}.png"
     to_png = mss.tools.to_png
-
-    with open('image_data', 'ab') as img_data:
-        while True:
-            img = queue.get()
-            if img is None:
-                break
-            pickle.dump(img, img_data)
-            # to_png(img.rgb, img.size, output=output.format(number))
-            number += 1
+    file=0
+    while file<5:
+        file=file+1
+        number=0
+        with open('image_data'+str(file), 'ab') as img_data:
+            while number<100:
+                img = queue.get()
+                if img is None:
+                    break
+                pickle.dump(img, img_data)
+                # to_png(img.rgb, img.size, output=output.format(number))
+                number += 1
 
 
 def saveToPNG():
     number = 0
     output = "images/file_{}.png"
     to_png = mss.tools.to_png
-    with open('image_data', 'rb') as img_data:
-        # img_queue = pickle.load(img_data)
-        while number < 500:
-            img_queue = pickle.load(img_data)
-            img = img_queue
-            if img is None:
-                break
-            print("Saving " + str(number))
-            to_png(img.rgb, img.size, output=output.format(number))
-            number += 1
+    file=1
+    while file<5:
+        with open('image_data'+str(file), 'rb') as img_data:
+            # img_queue = pickle.load(img_data)
+            while True:
+                try:
+                    img_queue = pickle.load(img_data)
+                    img = img_queue
+                    if img is None:
+                        break
+                    print("Saving in saveToPNG " + str(number))
+                    to_png(img.rgb, img.size, output=output.format(number))
+                    number += 1
+                except (EOFError):
+                    print("EOF"+str(file))
+                    break
+            img_data.close()
+            file=file+1
     make_video()
 
 
